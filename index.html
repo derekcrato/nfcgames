@@ -6,41 +6,19 @@
     <title>Retro Player</title>
     <style>
         body, html { margin: 0; padding: 0; background: #000; overflow: hidden; width: 100%; height: 100%; }
-        #game { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-        #start-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #111; display: flex; justify-content: center; align-items: center;
-            z-index: 9999;
-        }
-        #start-btn {
-            padding: 20px 40px; font-size: 22px; font-weight: bold;
-            background: #e74c3c; color: #fff; border: none; border-radius: 8px;
-            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
+        #game { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
-    <div id="start-screen">
-        <button id="start-btn" onclick="initEmulator()">JOGAR AGORA</button>
-    </div>
     <div id="game"></div>
 
-    <script>
-        function initEmulator() {
-            // Remove a tela do botão ao clicar
-            document.getElementById('start-screen').style.display = 'none';
-
-            // Configurações do EmulatorJS
-            window.EJS_player = "#game";
-            window.EJS_gameUrl = "https://play.emulatorjs.com/stable/roms/snes/SuperMarioWorld.sfc";
-            window.EJS_core = "snes";
-            window.EJS_pathtodata = "https://play.emulatorjs.com/stable/";
-
-            // Injeta o script do loader oficial
-            var script = document.createElement('script');
-            script.src = "https://play.emulatorjs.com/stable/data/loader.js";
-            document.body.appendChild(script);
-        }
+    <script type="text/javascript">
+        window.EJS_player = "#game";
+        window.EJS_gameUrl = "https://play.emulatorjs.com/stable/roms/snes/SuperMarioWorld.sfc";
+        window.EJS_core = "snes";
+        window.EJS_pathtodata = "https://play.emulatorjs.com/stable/";
+        window.EJS_startOnLoaded = false;
     </script>
+    <script src="https://play.emulatorjs.com/stable/data/loader.js"></script>
 </body>
 </html>
