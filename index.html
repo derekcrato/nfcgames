@@ -2,33 +2,20 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Retro Player</title>
-    <style>
-        body { margin: 0; padding: 0; background: #000; overflow: hidden; height: 100vh; }
-        #game { width: 100vw; height: 100vh; }
-        #start-btn { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            padding: 20px 40px; font-size: 20px; cursor: pointer; z-index: 999;
-        }
-    </style>
+    <title>Game</title>
 </head>
-<body>
-    <button id="start-btn" onclick="startGame()">CLIQUE PARA JOGAR</button>
-    <div id="game"></div>
-
+<body style="margin:0; background:#000;">
+    <div id="game" style="width:100vw; height:100vh;"></div>
+    <script src="https://play.emulatorjs.com/stable/loader.js"></script>
     <script>
-        function startGame() {
-            document.getElementById('start-btn').style.display = 'none';
-            
-            EJS_player = "#game";
-            EJS_gameUrl = "https://play.emulatorjs.com/stable/roms/snes/SuperMarioWorld.sfc"; // Link de teste
-            EJS_core = "snes";
-            EJS_pathtodata = "https://play.emulatorjs.com/stable/";
-            
-            var script = document.createElement('script');
-            script.src = "https://play.emulatorjs.com/stable/loader.js";
-            document.body.appendChild(script);
-        }
+        // O EJS precisa ser chamado após o carregamento do script
+        window.onload = function() {
+            new EJS({
+                player: "#game",
+                gameUrl: "https://play.emulatorjs.com/stable/roms/snes/SuperMarioWorld.sfc",
+                core: "snes"
+            });
+        };
     </script>
 </body>
 </html>
