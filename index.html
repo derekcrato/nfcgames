@@ -2,20 +2,23 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Retro Player</title>
+    <style>
+        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; width: 100%; height: 100%; }
+        #game { width: 100%; height: 100%; }
+    </style>
 </head>
-<body style="margin:0; background:#000;">
-    <div id="game" style="width:100vw; height:100vh;"></div>
-    <script src="https://play.emulatorjs.com/stable/loader.js"></script>
-    <script>
-        // O EJS precisa ser chamado após o carregamento do script
-        window.onload = function() {
-            new EJS({
-                player: "#game",
-                gameUrl: "https://github.com/derekcrato/nfcgames/blob/main/Super%20Mario%20World%20(USA).sfc",
-                core: "snes"
-            });
-        };
+<body>
+    <div id="game"></div>
+    
+    <script type="text/javascript">
+        EJS_player = "#game";
+        EJS_gameUrl = "https://play.emulatorjs.com/stable/roms/snes/SuperMarioWorld.sfc";
+        EJS_core = "snes";
+        EJS_pathtodata = "https://play.emulatorjs.com/stable/";
+        EJS_startOnLoaded = true;
     </script>
+    <script src="https://play.emulatorjs.com/stable/data/loader.js"></script>
 </body>
 </html>
