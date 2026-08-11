@@ -42,20 +42,19 @@
     </div>
 
     <script>
-        // 1. Mapeamento dos Jogos com os links diretos (raw)
+        // Mapeamento dos Jogos gerado automaticamente via Manager Tool
         const ROMS = {
-            'mario': 'https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc',
-            'bomberman5': 'https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc'
-        };
+            "bomberman5": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc",
+            "supermarioworld": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc"
+};
 
-        // 2. Captura o parâmetro "?rom=" da URL atual
+        // Captura o parâmetro "?rom=" da URL atual
         const urlParams = new URLSearchParams(window.location.search);
         const romKey = urlParams.get('rom');
 
         const display = document.getElementById('display');
 
         if (romKey && ROMS[romKey]) {
-            // URL direta da ROM no GitHub Raw
             const rawRomUrl = ROMS[romKey];
 
             // Configuradores do EmulatorJS
@@ -72,13 +71,11 @@
             script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
             document.body.appendChild(script);
         } else {
-            // Mensagem caso abra a URL sem informar um jogo válido
             display.innerHTML = `
                 <div class="error-msg">
                     <h2>Nenhum jogo selecionado!</h2>
                     <p>Use um link válido na sua tag NFC, por exemplo:</p>
                     <p><code>https://derekcrato.github.io/nfcgames/?rom=mario</code></p>
-                    <p><code>https://derekcrato.github.io/nfcgames/?rom=bomberman5</code></p>
                 </div>
             `;
         }
