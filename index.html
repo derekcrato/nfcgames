@@ -27,6 +27,12 @@
             text-align: center;
             padding: 20px;
         }
+        code {
+            background-color: #222;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #00ffcc;
+        }
     </style>
 </head>
 <body>
@@ -36,10 +42,10 @@
     </div>
 
     <script>
-        // 1. Mapeamento dos Jogos e suas URLs no GitHub Releases
+        // 1. Mapeamento dos Jogos com os links diretos (raw)
         const ROMS = {
-            'mario': 'https://github.com/derekxenofonte/portsnx/releases/download/nfc/Super.Mario.World.USA.sfc',
-            'bomberman5': 'https://github.com/derekxenofonte/portsnx/releases/download/nfc/Super.Bomberman.5.sfc'
+            'mario': 'https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc',
+            'bomberman5': 'https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc'
         };
 
         // 2. Captura o parâmetro "?rom=" da URL atual
@@ -49,9 +55,8 @@
         const display = document.getElementById('display');
 
         if (romKey && ROMS[romKey]) {
-            // Usamos o corsproxy.io para evitar que o GitHub bloqueie o carregamento da ROM no navegador
+            // URL direta da ROM no GitHub Raw
             const rawRomUrl = ROMS[romKey];
-            const safeRomUrl = 'https://corsproxy.io/?' + encodeURIComponent(rawRomUrl);
 
             // Configuradores do EmulatorJS
             EJS_player = '#display';
@@ -60,7 +65,7 @@
             EJS_color = '#6b5b95';
             EJS_startOnLoaded = true;
             EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-            EJS_gameUrl = safeRomUrl;
+            EJS_gameUrl = rawRomUrl;
 
             // Carrega a engine do emulador
             const script = document.createElement('script');
@@ -72,7 +77,8 @@
                 <div class="error-msg">
                     <h2>Nenhum jogo selecionado!</h2>
                     <p>Use um link válido na sua tag NFC, por exemplo:</p>
-                    <code>?rom=mario</code> ou <code>?rom=bomberman5</code>
+                    <p><code>https://derekcrato.github.io/nfcgames/?rom=mario</code></p>
+                    <p><code>https://derekcrato.github.io/nfcgames/?rom=bomberman5</code></p>
                 </div>
             `;
         }
