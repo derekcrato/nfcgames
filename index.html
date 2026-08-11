@@ -2,34 +2,48 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal SNES NFC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NFC Arcade Portal</title>
     <style>
+        * {
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
         body, html {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background-color: #000;
             color: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-family: sans-serif;
             overflow: hidden;
+            font-family: Arial, sans-serif;
         }
         #game-container {
             width: 100vw;
             height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #display {
+            width: 100%;
+            height: 100%;
         }
         .error-msg {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             text-align: center;
             padding: 20px;
         }
         code {
             background-color: #222;
-            padding: 4px 8px;
+            padding: 6px 12px;
             border-radius: 4px;
             color: #00ffcc;
         }
@@ -42,40 +56,59 @@
     </div>
 
     <script>
-        // Mapeamento dos Jogos gerado automaticamente via Manager Tool
         const ROMS = {
-            "bomberman5": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc",
-            "supermarioworld": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc"
+            "bomberman5": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc",
+                        "system": "snes"
+            },
+            "supermarioworld": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc",
+                        "system": "snes"
+            }
 };
 
-        // Captura o parâmetro "?rom=" da URL atual
         const urlParams = new URLSearchParams(window.location.search);
         const romKey = urlParams.get('rom');
-
         const display = document.getElementById('display');
 
         if (romKey && ROMS[romKey]) {
-            const rawRomUrl = ROMS[romKey];
+            const gameData = ROMS[romKey];
+            const rawRomUrl = gameData.url;
+            const systemCore = gameData.system || 'snes';
+            
+            const cleanUrl = encodeURI(rawRomUrl);
+            const safeRomUrl = 'https://corsproxy.io/?' + encodeURIComponent(cleanUrl);
 
-            // Configuradores do EmulatorJS
+            // Configuração do EmulatorJS para inicialização automática e sem UI extra
             EJS_player = '#display';
-            EJS_core = 'snes';
+            EJS_core = systemCore;
             EJS_gameName = romKey;
-            EJS_color = '#6b5b95';
+            EJS_color = '#000000';
             EJS_startOnLoaded = true;
             EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-            EJS_gameUrl = rawRomUrl;
+            EJS_gameUrl = safeRomUrl;
+            EJS_fullscreenOnLoad = true;
 
-            // Carrega a engine do emulador
             const script = document.createElement('script');
             script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+            
+            script.onload = () => {
+                // Tenta simular clique e destravar o contexto de áudio do navegador automaticamente
+                const autoStartInterval = setInterval(() => {
+                    const startBtn = document.querySelector('.ejs_start_button') || document.querySelector('#display canvas');
+                    if (startBtn) {
+                        startBtn.click();
+                        clearInterval(autoStartInterval);
+                    }
+                }, 200);
+            };
+
             document.body.appendChild(script);
         } else {
             display.innerHTML = `
                 <div class="error-msg">
                     <h2>Nenhum jogo selecionado!</h2>
-                    <p>Use um link válido na sua tag NFC, por exemplo:</p>
-                    <p><code>https://derekcrato.github.io/nfcgames/?rom=mario</code></p>
+                    <p>Aproxime uma Tag NFC cadastrada no portal.</p>
                 </div>
             `;
         }
