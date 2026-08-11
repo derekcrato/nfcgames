@@ -1,36 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Biblioteca Retro</title>
+    <title>Portal SNES NFC</title>
     <style>
-        body { font-family: sans-serif; background: #222; color: white; text-align: center; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .btn { padding: 20px; background: #e74c3c; border: none; color: white; cursor: pointer; border-radius: 8px; font-weight: bold; }
-        #game { width: 100%; height: 80vh; margin-top: 20px; display: none; }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+        }
+        .error-msg {
+            text-align: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Escolha o Jogo</h1>
-    <div class="grid" id="menu">
-        <!-- Adicione um botão para cada jogo aqui -->
-        <button class="btn" onclick="loadGame('https://play.emulatorjs.com/stable/roms/snes/SuperMarioWorld.sfc', 'snes')">Mario World</button>
-        <button class="btn" onclick="loadGame('LINK_DA_ROM_DO_JOGO_2.sfc', 'snes')">Outro Jogo</button>
+
+    <div id="game-container">
+        <div id="display"></div>
     </div>
 
-    <div id="game"></div>
-
-    <script src="https://play.emulatorjs.com/stable/data/loader.js"></script>
     <script>
-        function loadGame(romUrl, core) {
-            document.getElementById('menu').style.display = 'none';
-            window.EJS_player = "#game";
-            window.EJS_gameUrl = romUrl;
-            window.EJS_core = core;
-            window.EJS_pathtodata = "https://play.emulatorjs.com/stable/";
-            document.getElementById('game').style.display = 'block';
-            new EJS({player: "#game", gameUrl: romUrl, core: core, pathtodata: "https://play.emulatorjs.com/stable/"});
+        // 1. Mapeamento dos Jogos e suas URLs no GitHub Releases
+        const ROMS = {
+            'mario': 'https://github.com/derekxenofonte/portsnx/releases/download/nfc/Super.Mario.World.USA.sfc',
+            'bomberman5': 'https://github.com/derekxenofonte/portsnx/releases/download/nfc/Super.Bomberman.5.sfc'
+        };
+
+        // 2. Captura o parâmetro "?rom=" da URL atual
+        const urlParams = new URLSearchParams(window.location.search);
+        const romKey = urlParams.get('rom');
+
+        const display = document.getElementById('display');
+
+        if (romKey && ROMS[romKey]) {
+            // Usamos o corsproxy.io para evitar que o GitHub bloqueie o carregamento da ROM no navegador
+            const rawRomUrl = ROMS[romKey];
+            const safeRomUrl = 'https://corsproxy.io/?' + encodeURIComponent(rawRomUrl);
+
+            // Configuradores do EmulatorJS
+            EJS_player = '#display';
+            EJS_core = 'snes';
+            EJS_gameName = romKey;
+            EJS_color = '#6b5b95';
+            EJS_startOnLoaded = true;
+            EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+            EJS_gameUrl = safeRomUrl;
+
+            // Carrega a engine do emulador
+            const script = document.createElement('script');
+            script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+            document.body.appendChild(script);
+        } else {
+            // Mensagem caso abra a URL sem informar um jogo válido
+            display.innerHTML = `
+                <div class="error-msg">
+                    <h2>Nenhum jogo selecionado!</h2>
+                    <p>Use um link válido na sua tag NFC, por exemplo:</p>
+                    <code>?rom=mario</code> ou <code>?rom=bomberman5</code>
+                </div>
+            `;
         }
     </script>
 </body>
