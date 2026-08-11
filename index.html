@@ -2,18 +2,17 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>NFC Arcade Portal</title>
     <style>
         * {
             box-sizing: border-box;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        body, html {
             margin: 0;
             padding: 0;
+        }
+        html, body {
             width: 100vw;
             height: 100vh;
             background-color: #000;
@@ -21,16 +20,38 @@
             overflow: hidden;
             font-family: Arial, sans-serif;
         }
-        #game-container {
+        #display {
             width: 100vw;
             height: 100vh;
             position: absolute;
             top: 0;
             left: 0;
+            z-index: 1;
         }
-        #display {
-            width: 100%;
-            height: 100%;
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .pulse-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ffcc;
+            animation: pulse 1.2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.3; transform: scale(0.98); }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.3; transform: scale(0.98); }
         }
         .error-msg {
             display: flex;
@@ -41,22 +62,30 @@
             text-align: center;
             padding: 20px;
         }
-        code {
-            background-color: #222;
-            padding: 6px 12px;
-            border-radius: 4px;
-            color: #00ffcc;
-        }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <div id="display"></div>
+    <div id="start-overlay">
+        <div class="pulse-text">TOQUE PARA JOGAR</div>
     </div>
+
+    <div id="display"></div>
 
     <script>
         const ROMS = {
+            "pokemonblue": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Blue%20Version.gb",
+                        "system": "gbc"
+            },
+            "pokemomred": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Red%20Version.gb",
+                        "system": "gbc"
+            },
+            "pokemonyellow": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Yellow%20Version.gbc",
+                        "system": "gb"
+            },
             "bomberman5": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc",
                         "system": "snes"
@@ -69,42 +98,66 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const romKey = urlParams.get('rom');
+        const overlay = document.getElementById('start-overlay');
         const display = document.getElementById('display');
+
+        function requestFS() {
+            const el = document.documentElement;
+            if (el.requestFullscreen) return el.requestFullscreen();
+            if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+            if (el.msRequestFullscreen) return el.msRequestFullscreen();
+            return Promise.resolve();
+        }
+
+        function lockLandscape() {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
+        }
 
         if (romKey && ROMS[romKey]) {
             const gameData = ROMS[romKey];
-            const rawRomUrl = gameData.url;
+            const directRomUrl = gameData.url;
             const systemCore = gameData.system || 'snes';
-            
-            const cleanUrl = encodeURI(rawRomUrl);
-            const safeRomUrl = 'https://corsproxy.io/?' + encodeURIComponent(cleanUrl);
 
-            // Configuração do EmulatorJS para inicialização automática e sem UI extra
-            EJS_player = '#display';
-            EJS_core = systemCore;
-            EJS_gameName = romKey;
-            EJS_color = '#000000';
-            EJS_startOnLoaded = true;
-            EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-            EJS_gameUrl = safeRomUrl;
-            EJS_fullscreenOnLoad = true;
+            const startTrigger = async () => {
+                try {
+                    await requestFS();
+                } catch (e) {}
+                
+                lockLandscape();
+                overlay.style.display = 'none';
 
-            const script = document.createElement('script');
-            script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
-            
-            script.onload = () => {
-                // Tenta simular clique e destravar o contexto de áudio do navegador automaticamente
-                const autoStartInterval = setInterval(() => {
-                    const startBtn = document.querySelector('.ejs_start_button') || document.querySelector('#display canvas');
-                    if (startBtn) {
-                        startBtn.click();
-                        clearInterval(autoStartInterval);
-                    }
-                }, 200);
+                window.EJS_player = '#display';
+                window.EJS_core = systemCore;
+                window.EJS_gameName = romKey;
+                window.EJS_color = '#000000';
+                window.EJS_startOnLoaded = true;
+                window.EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/emulatorjs/emulatorjs@latest/data/';
+                window.EJS_gameUrl = directRomUrl;
+                
+                window.EJS_buttons = {
+                    play: true,
+                    pause: true,
+                    restart: true,
+                    mute: true,
+                    settings: true,
+                    fullscreen: true,
+                    saveState: true,
+                    loadState: true,
+                    screenRecord: false
+                };
+
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/gh/emulatorjs/emulatorjs@latest/data/loader.js';
+                document.body.appendChild(script);
             };
 
-            document.body.appendChild(script);
+            overlay.addEventListener('click', startTrigger, { once: true });
+            overlay.addEventListener('touchstart', startTrigger, { once: true });
+
         } else {
+            overlay.style.display = 'none';
             display.innerHTML = `
                 <div class="error-msg">
                     <h2>Nenhum jogo selecionado!</h2>
