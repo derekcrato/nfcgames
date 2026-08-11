@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     <meta name="application-name" content="NFC Arcade">
     <title>NFC Arcade Portal</title>
@@ -22,7 +21,6 @@
             color: #fff;
             overflow: hidden;
             font-family: Arial, sans-serif;
-            touch-action: manipulation;
         }
         #display {
             width: 100vw;
@@ -65,17 +63,6 @@
             height: 100vh;
             text-align: center;
             padding: 20px;
-            color: #ff4444;
-        }
-        .loading-msg {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-            padding: 20px;
-            color: #00ffcc;
         }
     </style>
 </head>
@@ -89,50 +76,25 @@
 
     <script>
         const ROMS = {
-            "michaeljacksonmd": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FMichael%2520Jackson%27s%2520Moonwalker%2520%28World%29.md",
-                        "system": "segaMD",
-                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Michael%20Jackson's%20Moonwalker%20(World).md"
-            },
             "pokemonblue": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Blue%2520Version.gb",
-                        "system": "gbc",
-                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Blue%20Version.gb"
-            },
-            "pokemonfirered": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520FireRed.gba",
-                        "system": "gba",
-                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20FireRed.gba"
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Blue%20Version.gb",
+                        "system": "gbc"
             },
             "pokemonred": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Red%2520Version.gb",
-                        "system": "gbc",
-                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Red%20Version.gb"
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Red%20Version.gb",
+                        "system": "gbc"
             },
             "pokemonyellow": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Yellow%2520Version.gbc",
-                        "system": "gbc",
-                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Yellow%20Version.gbc"
-            },
-            "sapoxule": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSapo%2520Xule%2520vs.%2520Os%2520Invasores%2520do%2520Brejo.bin",
-                        "system": "segaMS",
-                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Sapo%20Xule%20vs.%20Os%20Invasores%20do%20Brejo.bin"
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Yellow%20Version.gbc",
+                        "system": "gbc"
             },
             "bomberman5": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Bomberman%25205.sfc",
-                        "system": "snes",
-                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc"
-            },
-            "mariobros3nes": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Mario%2520Bros.%25203%2520%28USA%29.nes",
-                        "system": "nes",
-                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20Bros.%203%20(USA).nes"
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc",
+                        "system": "snes"
             },
             "supermarioworld": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Mario%2520World%2520%28USA%29.sfc",
-                        "system": "snes",
-                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc"
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc",
+                        "system": "snes"
             }
 };
 
@@ -171,20 +133,7 @@
             }
         }
 
-        function showError(message) {
-            overlay.style.display = 'none';
-            display.innerHTML = '<div class="error-msg"><h2>ERRO</h2><p>' + message + '</p></div>';
-        }
-
-        window.addEventListener('error', function(event) {
-            showError('Erro no carregamento: ' + event.message);
-        });
-
-        window.addEventListener('unhandledrejection', function(event) {
-            showError('Erro interno: ' + (event.reason && event.reason.message ? event.reason.message : 'desconhecido'));
-        });
-
-        async function startGame() {
+        async function startTrigger() {
             try {
                 await requestFS();
             } catch (e) {}
@@ -192,25 +141,13 @@
             lockLandscape();
             overlay.style.display = 'none';
 
-            display.innerHTML = '<div class="loading-msg"><div class="pulse-text">CARREGANDO...</div><p style="margin-top:10px;font-size:0.9rem;color:#aaa;">Isso pode demorar alguns segundos</p></div>';
-
-            const gameData = ROMS[romKey];
-            const gameUrl = gameData.url || gameData.direct || "";
-            const systemCore = gameData.system || 'snes';
-
-            if (!gameUrl) {
-                showError('URL da ROM nao encontrada.');
-                return;
-            }
-
-            window.EJS_DEBUG = true;
             window.EJS_player = '#display';
             window.EJS_core = systemCore;
             window.EJS_gameName = romKey;
             window.EJS_color = '#000000';
             window.EJS_startOnLoaded = true;
             window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-            window.EJS_gameUrl = gameUrl;
+            window.EJS_gameUrl = directRomUrl;
             
             window.EJS_buttons = {
                 play: true,
@@ -224,42 +161,29 @@
                 screenRecord: false
             };
 
-            window.EJS_onLoadStart = function() {
-                console.log('EmulatorJS: carregamento iniciado');
-            };
-
-            window.EJS_onLoadDone = function() {
-                console.log('EmulatorJS: carregamento concluido');
-            };
-
-            window.EJS_onGameStart = function() {
-                console.log('EmulatorJS: jogo iniciado');
-            };
-
             const script = document.createElement('script');
             script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
-            script.onerror = function() {
-                showError('Falha ao carregar o emulador.<br>Verifique sua conexao com a internet.');
-            };
             document.body.appendChild(script);
-
-            setTimeout(() => {
-                const current = display.innerHTML || '';
-                if (current.includes('CARREGANDO')) {
-                    showError('Timeout: o jogo nao carregou a tempo.<br>Tente novamente mais tarde.');
-                }
-            }, 30000);
         }
 
         if (romKey && ROMS[romKey]) {
-            overlay.addEventListener('click', startGame, { once: true });
-            overlay.addEventListener('touchstart', startGame, { once: true });
+            const gameData = ROMS[romKey];
+            const directRomUrl = gameData.url;
+            const systemCore = gameData.system || 'snes';
+
+            overlay.addEventListener('click', startTrigger, { once: true });
+            overlay.addEventListener('touchstart', startTrigger, { once: true });
 
             setTimeout(() => {
                 if (overlay.style.display !== 'none') {
-                    overlay.dispatchEvent(new Event('click', { bubbles: true }));
+                    const evt = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    overlay.dispatchEvent(evt);
                 }
-            }, 900);
+            }, 1000);
 
         } else {
             overlay.style.display = 'none';
