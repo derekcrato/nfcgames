@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <meta name="application-name" content="NFC Arcade">
     <title>NFC Arcade Portal</title>
     <style>
         * {
@@ -19,6 +22,7 @@
             color: #fff;
             overflow: hidden;
             font-family: Arial, sans-serif;
+            touch-action: manipulation;
         }
         #display {
             width: 100vw;
@@ -75,24 +79,29 @@
     <script>
         const ROMS = {
             "pokemonblue": {
-                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Blue%20Version.gb",
-                        "system": "gbc"
+                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Blue%2520Version.gb",
+                        "system": "gbc",
+                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Blue%20Version.gb"
             },
-            "pokemomred": {
-                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Red%20Version.gb",
-                        "system": "gbc"
+            "pokemonred": {
+                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Red%2520Version.gb",
+                        "system": "gbc",
+                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Red%20Version.gb"
             },
             "pokemonyellow": {
-                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Yellow%20Version.gbc",
-                        "system": "gbc"
+                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Yellow%2520Version.gbc",
+                        "system": "gbc",
+                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Yellow%20Version.gbc"
             },
             "bomberman5": {
-                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc",
-                        "system": "snes"
+                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Bomberman%25205.sfc",
+                        "system": "snes",
+                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc"
             },
             "supermarioworld": {
-                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc",
-                        "system": "snes"
+                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Mario%2520World%2520(USA).sfc",
+                        "system": "snes",
+                        "direct": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc"
             }
 };
 
@@ -131,46 +140,53 @@
             }
         }
 
-        if (romKey && ROMS[romKey]) {
-            const gameData = ROMS[romKey];
-            const directRomUrl = gameData.url;
-            const systemCore = gameData.system || 'snes';
+        async function startGame() {
+            try {
+                await requestFS();
+            } catch (e) {}
+            
+            lockLandscape();
+            overlay.style.display = 'none';
 
-            const startTrigger = async () => {
-                try {
-                    await requestFS();
-                } catch (e) {}
-                
-                lockLandscape();
-                overlay.style.display = 'none';
-
-                window.EJS_player = '#display';
-                window.EJS_core = systemCore;
-                window.EJS_gameName = romKey;
-                window.EJS_color = '#000000';
-                window.EJS_startOnLoaded = true;
-                window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-                window.EJS_gameUrl = directRomUrl;
-                
-                window.EJS_buttons = {
-                    play: true,
-                    pause: true,
-                    restart: true,
-                    mute: true,
-                    settings: true,
-                    fullscreen: true,
-                    saveState: true,
-                    loadState: true,
-                    screenRecord: false
-                };
-
-                const script = document.createElement('script');
-                script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
-                document.body.appendChild(script);
+            window.EJS_player = '#display';
+            window.EJS_core = systemCore;
+            window.EJS_gameName = romKey;
+            window.EJS_color = '#000000';
+            window.EJS_startOnLoaded = true;
+            window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+            window.EJS_gameUrl = safeRomUrl;
+            
+            window.EJS_buttons = {
+                play: true,
+                pause: true,
+                restart: true,
+                mute: true,
+                settings: true,
+                fullscreen: true,
+                saveState: true,
+                loadState: true,
+                screenRecord: false
             };
 
-            overlay.addEventListener('click', startTrigger, { once: true });
-            overlay.addEventListener('touchstart', startTrigger, { once: true });
+            const script = document.createElement('script');
+            script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+            document.body.appendChild(script);
+        }
+
+        if (romKey && ROMS[romKey]) {
+            const gameData = ROMS[romKey];
+            const safeRomUrl = gameData.url;
+            const directRomUrl = gameData.direct || safeRomUrl.replace(/https:\/\/corsproxy\.io\/\?/, '');
+            const systemCore = gameData.system || 'snes';
+
+            overlay.addEventListener('click', startGame, { once: true });
+            overlay.addEventListener('touchstart', startGame, { once: true });
+
+            setTimeout(() => {
+                if (overlay.style.display !== 'none') {
+                    overlay.click();
+                }
+            }, 1200);
 
         } else {
             overlay.style.display = 'none';
