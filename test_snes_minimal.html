@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <title>Teste SNES</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #display {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background: rgba(0,0,0,0.7);
+            padding: 8px;
+            font-size: 12px;
+            color: #0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="status">Iniciando...</div>
+    <div id="display"></div>
+    <script>
+        const status = document.getElementById('status');
+        const display = document.getElementById('display');
+
+        function log(msg) {
+            status.textContent = msg;
+            console.log('[TESTE] ' + msg);
+        }
+
+        log('Configurando EmulatorJS...');
+
+        window.EJS_player = '#display';
+        window.EJS_core = 'snes9x';
+        window.EJS_gameUrl = 'https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc';
+        window.EJS_gameName = 'supermarioworld';
+        window.EJS_startOnLoaded = true;
+        window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+        window.EJS_color = '#000000';
+        window.EJS_buttons = {
+            play: true,
+            pause: true,
+            restart: true,
+            mute: true,
+            settings: true,
+            fullscreen: true,
+            saveState: true,
+            loadState: true,
+            screenRecord: false
+        };
+
+        log('Carregando loader.js...');
+
+        const script = document.createElement('script');
+        script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+        script.onerror = function() {
+            log('ERRO: Falha ao carregar loader.js');
+            display.innerHTML = '<div style="color:red;text-align:center;padding:20px;"><h2>ERRO</h2><p>Falha ao carregar emulador</p></div>';
+        };
+        script.onload = function() {
+            log('Loader carregado. Aguardando init...');
+        };
+        document.body.appendChild(script);
+
+        setTimeout(function() {
+            log('Timeout de 30s atingido');
+            display.innerHTML = '<div style="color:red;text-align:center;padding:20px;"><h2>TIMEOUT</h2><p>O jogo não carregou em 30s</p></div>';
+        }, 30000);
+    </script>
+</body>
+</html>
