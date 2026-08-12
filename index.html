@@ -135,6 +135,14 @@
         const romKey = getSanitizedRomKey();
         const overlay = document.getElementById('start-overlay');
         const display = document.getElementById('display');
+        let gameData = null;
+        let directRomUrl = '';
+        let systemCore = 'snes';
+        if (romKey && ROMS[romKey]) {
+            gameData = ROMS[romKey];
+            directRomUrl = gameData.url;
+            systemCore = gameData.system || 'snes';
+        }
         function requestFS() {
             const el = document.documentElement;
             if (el.requestFullscreen) return el.requestFullscreen();
@@ -153,6 +161,7 @@
             } catch (e) {}
             lockLandscape();
             overlay.style.display = 'none';
+            display.innerHTML = '<div class="error-msg"><p>Carregando emulador...</p></div>';
             window.EJS_player = '#display';
             window.EJS_core = systemCore;
             window.EJS_gameName = romKey;
@@ -173,24 +182,26 @@
             };
             const script = document.createElement('script');
             script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+            script.onerror = function() {
+                display.innerHTML = '<div class="error-msg"><h2>ERRO AO CARREGAR EMULADOR</h2><p>Verifique sua conexao.</p></div>';
+            };
             document.body.appendChild(script);
         }
+        window.addEventListener('error', function(event) {
+            display.innerHTML = '<div class="error-msg"><h2>ERRO NA PAGINA</h2><p>' + event.message + '</p></div>';
+        });
+        window.addEventListener('unhandledrejection', function(event) {
+            display.innerHTML = '<div class="error-msg"><h2>ERRO INTERNO</h2><p>' + (event.reason && event.reason.message ? event.reason.message : 'desconhecido') + '</p></div>';
+        });
+        setTimeout(function() {
+            const current = display.innerHTML || '';
+            if (current.includes('Carregando emulador')) {
+                display.innerHTML = '<div class="error-msg"><h2>TIMEOUT</h2><p>O jogo nao carregou a tempo.<br>Tente novamente mais tarde.</p></div>';
+            }
+        }}, 30000);
         if (romKey && ROMS[romKey]) {
-            const gameData = ROMS[romKey];
-            const directRomUrl = gameData.url;
-            const systemCore = gameData.system || 'snes';
             overlay.addEventListener('click', startTrigger, { once: true });
             overlay.addEventListener('touchstart', startTrigger, { once: true });
-            setTimeout(() => {
-                if (overlay.style.display !== 'none') {
-                    const evt = new MouseEvent('click', {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window
-                    });
-                    overlay.dispatchEvent(evt);
-                }
-            }, 1000);
         } else {
             overlay.style.display = 'none';
             display.innerHTML = `
