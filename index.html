@@ -75,47 +75,47 @@
         const ROMS = {
             "michaeljacksonmd": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Michael%20Jackson's%20Moonwalker%20(World).md",
-                        "system": "segaMD",
+                        "system": "genesis_plus_gx",
                         "name": "Michael Jackson's Moonwalker"
             },
             "pokemonblue": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Blue%20Version.gb",
-                        "system": "gbc",
+                        "system": "gambatte",
                         "name": "Pokemon Blue"
             },
             "pokemonfirered": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20FireRed.gba",
-                        "system": "gba",
+                        "system": "mgba",
                         "name": "Pokemon Fire Red"
             },
             "pokemonred": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Red%20Version.gb",
-                        "system": "gbc",
+                        "system": "gambatte",
                         "name": "Pokemon Red"
             },
             "pokemonyellow": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Yellow%20Version.gbc",
-                        "system": "gbc",
+                        "system": "gambatte",
                         "name": "Pokemon Yellow"
             },
             "sapoxule": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Sapo%20Xule%20vs.%20Os%20Invasores%20do%20Brejo.bin",
-                        "system": "segaMS",
+                        "system": "smsplus",
                         "name": "Sapo Xule vs. Os Invasores do Brejo"
             },
             "bomberman5": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc",
-                        "system": "snes",
+                        "system": "snes9x",
                         "name": "Super Bomberman 5"
             },
             "supermariobors3": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20Bros.%203%20(USA).nes",
-                        "system": "nes",
+                        "system": "fceumm",
                         "name": "Super Mario Bros 3"
             },
             "supermarioworld": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc",
-                        "system": "snes",
+                        "system": "snes9x",
                         "name": "Super Mario World"
             }
 };
@@ -155,11 +155,23 @@
                 screen.orientation.lock('landscape').catch(() => {});
             }
         }
+        function showError(message) {
+            overlay.style.display = 'none';
+            display.innerHTML = '<div class="error-msg"><h2>ERRO</h2><p>' + message + '</p></div>';
+        }
+        window.addEventListener('error', function(event) {
+            showError('Erro no carregamento: ' + event.message);
+        });
+        window.addEventListener('unhandledrejection', function(event) {
+            showError('Erro interno: ' + (event.reason && event.reason.message ? event.reason.message : 'desconhecido'));
+        });
         async function startTrigger() {
             try {
                 await requestFS();
             } catch (e) {}
-            lockLandscape();
+            try {
+                lockLandscape();
+            } catch (e) {}
             overlay.style.display = 'none';
             display.innerHTML = '<div class="error-msg"><p>Carregando emulador...</p></div>';
             window.EJS_player = '#display';
@@ -183,22 +195,10 @@
             const script = document.createElement('script');
             script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
             script.onerror = function() {
-                display.innerHTML = '<div class="error-msg"><h2>ERRO AO CARREGAR EMULADOR</h2><p>Verifique sua conexao.</p></div>';
+                showError('Falha ao carregar o loader do emulador.<br>Verifique sua conexao.');
             };
             document.body.appendChild(script);
         }
-        window.addEventListener('error', function(event) {
-            display.innerHTML = '<div class="error-msg"><h2>ERRO NA PAGINA</h2><p>' + event.message + '</p></div>';
-        });
-        window.addEventListener('unhandledrejection', function(event) {
-            display.innerHTML = '<div class="error-msg"><h2>ERRO INTERNO</h2><p>' + (event.reason && event.reason.message ? event.reason.message : 'desconhecido') + '</p></div>';
-        });
-        setTimeout(function() {
-            const current = display.innerHTML || '';
-            if (current.includes('Carregando emulador')) {
-                display.innerHTML = '<div class="error-msg"><h2>TIMEOUT</h2><p>O jogo nao carregou a tempo.<br>Tente novamente mais tarde.</p></div>';
-            }
-        }}, 30000);
         if (romKey && ROMS[romKey]) {
             overlay.addEventListener('click', startTrigger, { once: true });
             overlay.addEventListener('touchstart', startTrigger, { once: true });
