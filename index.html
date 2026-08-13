@@ -27,7 +27,8 @@
     <div id="game"></div>
     <button id="start-btn">JOGAR</button>
     <script>
-        const startBtn = document.getElementById('start-btn');
+        const btn = document.getElementById('start-btn');
+        const gameDiv = document.getElementById('game');
         const urlParams = new URLSearchParams(window.location.search);
         const gameKey = urlParams.get('rom') || urlParams.get('game') || 'supermarioworld';
 
@@ -75,15 +76,17 @@
             else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
         }
 
-        startBtn.addEventListener('click', () => {
+        btn.addEventListener('click', function() {
             enterFullscreen(document.documentElement);
-            startBtn.style.display = 'none';
+            btn.style.display = 'none';
 
             const gameData = GAMES[gameKey];
             if (!gameData) {
                 alert('Jogo nao encontrado: ' + gameKey);
                 return;
             }
+
+            gameDiv.innerHTML = '<p style="color:#00ffcc;text-align:center;padding:20px;">Carregando...</p>';
 
             window.EJS_player = '#game';
             window.EJS_core = gameData.system || 'snes9x';
@@ -95,9 +98,9 @@
 
             const script = document.createElement('script');
             script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
-            script.onerror = () => {
-                startBtn.style.display = 'block';
-                startBtn.textContent = 'ERRO';
+            script.onerror = function() {
+                gameDiv.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Erro ao carregar emulador</p>';
+                btn.style.display = 'block';
             };
             document.body.appendChild(script);
         });
