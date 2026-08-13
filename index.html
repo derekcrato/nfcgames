@@ -1,1 +1,65 @@
-.
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <title>NFC Arcade</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100vw; height: 100vh;
+            background: #000; color: #fff;
+            overflow: hidden; font-family: Arial, sans-serif;
+        }
+        #display {
+            width: 100vw; height: 100vh;
+            position: absolute; top: 0; left: 0;
+        }
+        #play-btn {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            padding: 20px 40px; font-size: 1.2rem; color: #00ffcc;
+            background: rgba(0, 255, 204, 0.1); border: 2px solid #00ffcc;
+            border-radius: 10px; cursor: pointer; z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div id="play-btn">JOGAR</div>
+    <div id="display"></div>
+    <script>
+        const btn = document.getElementById('play-btn');
+        const display = document.getElementById('display');
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameKey = urlParams.get('rom') || urlParams.get('game') || 'supermarioworld';
+
+        const GAMES = {
+            "supermarioworld": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc"),
+                system: "snes9x"
+            }
+        };
+
+        btn.addEventListener('click', function() {
+            btn.style.display = 'none';
+            display.innerHTML = '<p style="color:#00ffcc;text-align:center;padding:20px;">Carregando...</p>';
+            window.EJS_player = '#display';
+            window.EJS_core = 'snes9x';
+            window.EJS_gameUrl = GAMES[gameKey].url;
+            window.EJS_gameName = gameKey;
+            window.EJS_startOnLoaded = true;
+            window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+            window.EJS_color = '#000000';
+            const script = document.createElement('script');
+            script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+            script.onerror = function() {
+                display.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Erro ao carregar emulador</p>';
+                btn.style.display = 'block';
+            };
+            document.body.appendChild(script);
+        });
+    </script>
+</body>
+</html>
