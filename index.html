@@ -6,72 +6,38 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#000000">
-    <meta name="application-name" content="NFC Arcade">
-    <title>NFC Arcade Portal</title>
+    <title>NFC Arcade</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
-            width: 100vw;
-            height: 100vh;
-            background-color: #000;
-            color: #fff;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
+            width: 100vw; height: 100vh;
+            background: #000; color: #fff;
+            overflow: hidden; font-family: Arial, sans-serif;
         }
-        #display {
-            width: 100vw;
-            height: 100vh;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
+        #game { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
+        #start-btn {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            padding: 20px 40px; font-size: 1.2rem; color: #00ffcc;
+            background: rgba(0, 255, 204, 0.1); border: 2px solid #00ffcc;
+            border-radius: 10px; cursor: pointer; z-index: 10;
         }
-        #start-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #000;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-        .pulse-text {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #00ffcc;
-            animation: pulse 1.2s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 0.3; transform: scale(0.98); }
-            50% { opacity: 1; transform: scale(1.02); }
-            100% { opacity: 0.3; transform: scale(0.98); }
-        }
-        .error-msg {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-            padding: 20px;
+        #save-status {
+            position: fixed; bottom: 10px; right: 10px; z-index: 10;
+            background: rgba(0,0,0,0.85); color: #0f0; padding: 5px 10px;
+            font-size: 10px; border: 1px solid #0f0; display: none;
         }
     </style>
 </head>
 <body>
-    <div id="start-overlay">
-        <div class="pulse-text">TOQUE PARA JOGAR</div>
-    </div>
-    <div id="display"></div>
+    <div id="game"></div>
+    <button id="start-btn">JOGAR</button>
+    <div id="save-status"></div>
     <script>
+        const startBtn = document.getElementById('start-btn');
+        const saveStatus = document.getElementById('save-status');
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameKey = urlParams.get('rom') || urlParams.get('game') || 'supermarioworld';
+
         const ROMS = {
             "michaeljacksonmd": {
                         "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Michael%20Jackson's%20Moonwalker%20(World).md",
@@ -119,98 +85,256 @@
                         "name": "Super Mario World"
             }
 };
-        function getSanitizedRomKey() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const rawKey = urlParams.get('rom');
-            if (!rawKey) return null;
-            const cleanKey = rawKey.toLowerCase().replace(/[^a-z0-9]/g, '');
-            if (ROMS[cleanKey]) return cleanKey;
-            for (let key in ROMS) {
-                if (key.toLowerCase() === rawKey.toLowerCase()) {
-                    return key;
+
+        let db = null;
+        let autosaveTimer = null;
+        let iframeReady = false;
+        const SAVE_KEY = 'nfc_save_' + gameKey;
+        const SRAM_KEY = 'nfc_sram_' + gameKey;
+        const ROM_KEY = 'nfc_rom_' + gameKey;
+
+        function showStatus(msg) {
+            saveStatus.textContent = msg;
+            saveStatus.style.display = 'block';
+            setTimeout(() => saveStatus.style.display = 'none', 3000);
+        }
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open('NFC_Arcade', 1);
+                req.onerror = () => reject(req.error);
+                req.onsuccess = () => resolve(req.result);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('saves')) {
+                        db.createObjectStore('saves', { keyPath: 'id' });
+                    }
+                };
+            });
+        }
+
+        function dbPut(id, data) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('saves', 'readwrite');
+                tx.objectStore('saves').put({ id, data, ts: Date.now() });
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        function dbGet(id) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('saves', 'readonly');
+                const req = tx.objectStore('saves').get(id);
+                req.onsuccess = () => resolve(req.result ? req.result.data : null);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function downloadRom(url) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.responseType = 'arraybuffer';
+                xhr.onload = () => {
+                    if (xhr.status === 200) resolve(xhr.response);
+                    else reject(new Error('HTTP ' + xhr.status));
+                };
+                xhr.onerror = () => reject(new Error('Erro download'));
+                xhr.send();
+            });
+        }
+
+        function injectIntoSandbox() {
+            return new Promise((resolve, reject) => {
+                const iframe = document.querySelector('#game iframe');
+                if (!iframe || !iframe.contentWindow) {
+                    reject(new Error('Iframe nao encontrado'));
+                    return;
+                }
+
+                try {
+                    if (iframe.contentWindow.NFC_INJECTED) {
+                        resolve();
+                        return;
+                    }
+                    iframe.contentWindow.NFC_INJECTED = true;
+
+                    const script = iframe.contentWindow.document.createElement('script');
+                    script.textContent = `
+                        window.NFC_SAVE_STATE = null;
+                        window.NFC_SRAM = null;
+
+                        window.NFC_capture = function() {
+                            try {
+                                if (typeof EJS === 'undefined') return false;
+                                if (typeof EJS.saveState === 'function') {
+                                    window.NFC_SAVE_STATE = EJS.saveState();
+                                }
+                                if (typeof EJS.getSavedata === 'function') {
+                                    window.NFC_SRAM = EJS.getSavedata();
+                                }
+                                if (EJS.game && typeof EJS.game.getSavedata === 'function') {
+                                    window.NFC_SRAM = EJS.game.getSavedata();
+                                }
+                                if (EJS.emu && typeof EJS.emu.getSavedata === 'function') {
+                                    window.NFC_SRAM = EJS.emu.getSavedata();
+                                }
+                                return true;
+                            } catch(e) {
+                                console.error('[NFC] capture error:', e);
+                                return false;
+                            }
+                        };
+
+                        window.NFC_restore = function(saveState, sram) {
+                            try {
+                                if (typeof EJS === 'undefined') return false;
+                                if (saveState && typeof EJS.loadState === 'function') {
+                                    EJS.loadState(saveState);
+                                }
+                                if (sram) {
+                                    setTimeout(function() {
+                                        try {
+                                            if (typeof EJS.setSavedata === 'function') EJS.setSavedata(sram);
+                                            else if (EJS.game && typeof EJS.game.setSavedata === 'function') EJS.game.setSavedata(sram);
+                                            else if (EJS.emu && typeof EJS.emu.setSavedata === 'function') EJS.emu.setSavedata(sram);
+                                        } catch(e) {}
+                                    }, 2000);
+                                }
+                                return true;
+                            } catch(e) {
+                                console.error('[NFC] restore error:', e);
+                                return false;
+                            }
+                        };
+                    `;
+                    iframe.contentWindow.document.head.appendChild(script);
+                    setTimeout(resolve, 500);
+                } catch(e) {
+                    reject(e);
+                }
+            });
+        }
+
+        function saveGame() {
+            if (!iframeReady) return;
+
+            const iframe = document.querySelector('#game iframe');
+            if (!iframe || !iframe.contentWindow) return;
+
+            try {
+                const captured = iframe.contentWindow.NFC_capture();
+                if (!captured) return;
+
+                const saveState = iframe.contentWindow.NFC_SAVE_STATE;
+                const sram = iframe.contentWindow.NFC_SRAM;
+
+                const promises = [];
+                if (saveState) promises.push(dbPut(SAVE_KEY, saveState));
+                if (sram) promises.push(dbPut(SRAM_KEY, sram));
+
+                if (promises.length > 0) {
+                    Promise.all(promises).then(() => showStatus('SALVO'));
+                }
+            } catch(e) {
+                console.error('Save erro:', e);
+            }
+        }
+
+        function loadSave() {
+            Promise.all([dbGet(SAVE_KEY), dbGet(SRAM_KEY)]).then(([saveState, sram]) => {
+                const iframe = document.querySelector('#game iframe');
+                if (!iframe || !iframe.contentWindow || !iframe.contentWindow.NFC_restore) return;
+
+                const restored = iframe.contentWindow.NFC_restore(saveState, sram);
+                if (restored) showStatus('SAVE CARREGADO');
+            });
+        }
+
+        function waitForIframe(callback) {
+            let attempts = 0;
+            const maxAttempts = 120;
+            function check() {
+                attempts++;
+                const iframe = document.querySelector('#game iframe');
+                if (iframe && iframe.contentWindow && iframe.contentWindow.NFC_INJECTED) {
+                    iframeReady = true;
+                    callback();
+                    return;
+                }
+                if (attempts < maxAttempts) {
+                    setTimeout(check, 500);
+                } else {
+                    console.log('[NFC] Iframe timeout');
+                    showStatus('Erro: iframe nao carregou');
                 }
             }
-            return null;
+            setTimeout(check, 2000);
         }
-        const romKey = getSanitizedRomKey();
-        const overlay = document.getElementById('start-overlay');
-        const display = document.getElementById('display');
-        let gameData = null;
-        let directRomUrl = '';
-        let systemCore = 'snes';
-        if (romKey && ROMS[romKey]) {
-            gameData = ROMS[romKey];
-            directRomUrl = gameData.url;
-            systemCore = gameData.system || 'snes';
-        }
-        function requestFS() {
-            const el = document.documentElement;
-            if (el.requestFullscreen) return el.requestFullscreen();
-            if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
-            if (el.msRequestFullscreen) return el.msRequestFullscreen();
-            return Promise.resolve();
-        }
-        function lockLandscape() {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(() => {});
+
+        startBtn.addEventListener('click', async () => {
+            startBtn.style.display = 'none';
+            const gameData = ROMS[gameKey];
+            if (!gameData) {
+                alert('Jogo nao encontrado: ' + gameKey);
+                return;
             }
-        }
-        function showError(message) {
-            overlay.style.display = 'none';
-            display.innerHTML = '<div class="error-msg"><h2>ERRO</h2><p>' + message + '</p></div>';
-        }
-        window.addEventListener('error', function(event) {
-            showError('Erro no carregamento: ' + event.message);
-        });
-        window.addEventListener('unhandledrejection', function(event) {
-            showError('Erro interno: ' + (event.reason && event.reason.message ? event.reason.message : 'desconhecido'));
-        });
-        async function startTrigger() {
+
             try {
-                await requestFS();
-            } catch (e) {}
-            try {
-                lockLandscape();
-            } catch (e) {}
-            overlay.style.display = 'none';
-            display.innerHTML = '<div class="error-msg"><p>Carregando emulador...</p></div>';
-            window.EJS_player = '#display';
-            window.EJS_core = systemCore;
-            window.EJS_gameName = romKey;
-            window.EJS_color = '#000000';
+                db = await openDB();
+            } catch(e) {
+                alert('Erro banco dados');
+                return;
+            }
+
+            let romBlob = await dbGet(ROM_KEY);
+            if (!romBlob) {
+                showStatus('Baixando ROM...');
+                try {
+                    const buffer = await downloadRom(gameData.url);
+                    romBlob = new Blob([buffer], { type: 'application/octet-stream' });
+                    await dbPut(ROM_KEY, romBlob);
+                } catch(e) {
+                    alert('Erro ao baixar ROM');
+                    return;
+                }
+            }
+
+            const romUrl = URL.createObjectURL(romBlob);
+            const core = gameData.system || 'snes';
+
+            window.EJS_player = '#game';
+            window.EJS_core = core;
+            window.EJS_gameUrl = romUrl;
+            window.EJS_gameName = gameKey;
             window.EJS_startOnLoaded = true;
             window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-            window.EJS_gameUrl = directRomUrl;
-            window.EJS_buttons = {
-                play: true,
-                pause: true,
-                restart: true,
-                mute: true,
-                settings: true,
-                fullscreen: true,
-                saveState: true,
-                loadState: true,
-                screenRecord: false
-            };
+            window.EJS_color = '#000000';
+
             const script = document.createElement('script');
             script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
-            script.onerror = function() {
-                showError('Falha ao carregar o loader do emulador.<br>Verifique sua conexao.');
+            script.onerror = () => {
+                startBtn.style.display = 'block';
+                startBtn.textContent = 'ERRO';
+            };
+            script.onload = () => {
+                waitForIframe(() => {
+                    injectIntoSandbox().then(() => {
+                        showStatus('Emulador pronto!');
+                        loadSave();
+                        autosaveTimer = setInterval(saveGame, 30000);
+                    }).catch(err => {
+                        console.error('Erro injecao:', err);
+                    });
+                });
             };
             document.body.appendChild(script);
-        }
-        if (romKey && ROMS[romKey]) {
-            overlay.addEventListener('click', startTrigger, { once: true });
-            overlay.addEventListener('touchstart', startTrigger, { once: true });
-        } else {
-            overlay.style.display = 'none';
-            display.innerHTML = `
-                <div class="error-msg">
-                    <h2>Nenhum jogo selecionado!</h2>
-                    <p>Aproxime uma Tag NFC cadastrada no portal.</p>
-                </div>
-            `;
-        }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            saveGame();
+        });
     </script>
 </body>
 </html>
