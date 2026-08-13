@@ -14,8 +14,11 @@
             background: #000; color: #fff;
             overflow: hidden; font-family: Arial, sans-serif;
         }
-        #game { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
-        #start-btn {
+        #display {
+            width: 100vw; height: 100vh;
+            position: absolute; top: 0; left: 0;
+        }
+        #play-btn {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             padding: 20px 40px; font-size: 1.2rem; color: #00ffcc;
             background: rgba(0, 255, 204, 0.1); border: 2px solid #00ffcc;
@@ -24,91 +27,35 @@
     </style>
 </head>
 <body>
-    <div id="game"></div>
-    <button id="start-btn">JOGAR</button>
+    <div id="play-btn">JOGAR</div>
+    <div id="display"></div>
     <script>
-        const btn = document.getElementById('start-btn');
-        const gameDiv = document.getElementById('game');
+        const btn = document.getElementById('play-btn');
+        const display = document.getElementById('display');
         const urlParams = new URLSearchParams(window.location.search);
         const gameKey = urlParams.get('rom') || urlParams.get('game') || 'supermarioworld';
 
-        const ROMS = {
-            "michaeljacksonmd": {
-                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FMichael%2520Jackson%27s%2520Moonwalker%2520%28World%29.md",
-                        "system": "genesis_plus_gx",
-                        "name": "Michael Jackson's Moonwalker"
-            },
-            "pokemonblue": {
-                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Blue%2520Version.gb",
-                        "system": "gambatte",
-                        "name": "Pokemon Blue"
-            },
-            "pokemonfirered": {
-                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520FireRed.gba",
-                        "system": "mgba",
-                        "name": "Pokemon Fire Red"
-            },
-            "pokemonred": {
-                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Red%2520Version.gb",
-                        "system": "gambatte",
-                        "name": "Pokemon Red"
-            },
-            "pokemonyellow": {
-                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Yellow%2520Version.gbc",
-                        "system": "gambatte",
-                        "name": "Pokemon Yellow"
-            },
-            "sapoxule": {
-                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSapo%2520Xule%2520vs.%2520Os%2520Invasores%2520do%2520Brejo.bin",
-                        "system": "smsplus",
-                        "name": "Sapo Xule vs. Os Invasores do Brejo"
-            },
-            "bomberman5": {
-                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Bomberman%25205.sfc",
-                        "system": "snes9x",
-                        "name": "Super Bomberman 5"
-            },
-            "supermariobors3": {
-                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Mario%2520Bros.%25203%2520%28USA%29.nes",
-                        "system": "fceumm",
-                        "name": "Super Mario Bros 3"
-            },
+        const GAMES = {
             "supermarioworld": {
-                        "url": "https://corsproxy.io/?https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Mario%2520World%2520%28USA%29.sfc",
-                        "system": "snes9x",
-                        "name": "Super Mario World"
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc"),
+                system: "snes9x"
             }
-};
-
-        function enterFullscreen(el) {
-            if (el.requestFullscreen) el.requestFullscreen();
-            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        }
+        };
 
         btn.addEventListener('click', function() {
-            enterFullscreen(document.documentElement);
             btn.style.display = 'none';
-
-            const gameData = ROMS[gameKey];
-            if (!gameData) {
-                alert('Jogo nao encontrado: ' + gameKey);
-                return;
-            }
-
-            gameDiv.innerHTML = '<p style="color:#00ffcc;text-align:center;padding:20px;">Carregando...</p>';
-
-            window.EJS_player = '#game';
-            window.EJS_core = gameData.system || 'snes9x';
-            window.EJS_gameUrl = gameData.url;
+            display.innerHTML = '<p style="color:#00ffcc;text-align:center;padding:20px;">Carregando...</p>';
+            window.EJS_player = '#display';
+            window.EJS_core = 'snes9x';
+            window.EJS_gameUrl = GAMES[gameKey].url;
             window.EJS_gameName = gameKey;
             window.EJS_startOnLoaded = true;
             window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
             window.EJS_color = '#000000';
-
             const script = document.createElement('script');
             script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
             script.onerror = function() {
-                gameDiv.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Erro ao carregar emulador</p>';
+                display.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Erro ao carregar emulador</p>';
                 btn.style.display = 'block';
             };
             document.body.appendChild(script);
