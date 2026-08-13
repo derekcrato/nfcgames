@@ -39,19 +39,74 @@
             "supermarioworld": {
                 url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc"),
                 system: "snes9x"
+            },
+            "zelda3": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/The%20Legend%20of%20Zelda%20-%20A%20Link%20to%20the%20Past%20(USA).sfc"),
+                system: "snes9x"
+            },
+            "chronotrigger": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Chrono%20Trigger%20(USA).sfc"),
+                system: "snes9x"
+            },
+            "bomberman5": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc"),
+                system: "snes9x"
+            },
+            "supermariobors3": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20Bros.%203%20(USA).nes"),
+                system: "fceumm"
+            },
+            "pokemonred": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Red%20Version.gbc"),
+                system: "gambatte"
+            },
+            "pokemonblue": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Blue%20Version.gb"),
+                system: "gambatte"
+            },
+            "pokemonyellow": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Yellow%20Version.gbc"),
+                system: "gambatte"
+            },
+            "pokemonfirered": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20FireRed.gba"),
+                system: "mgba"
+            },
+            "sapoxule": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Sapo%20Xule%20vs.%20Os%20Invasores%20do%20Brejo.bin"),
+                system: "smsplus"
+            },
+            "michaeljacksonmd": {
+                url: "https://corsproxy.io/?" + encodeURIComponent("https://raw.githubusercontent.com/derekcrato/nfcgames/main/Michael%20Jackson's%20Moonwalker%20(World).md"),
+                system: "genesis_plus_gx"
             }
         };
 
+        function enterFullscreen(el) {
+            if (el.requestFullscreen) el.requestFullscreen();
+            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        }
+
         btn.addEventListener('click', function() {
+            enterFullscreen(document.documentElement);
             btn.style.display = 'none';
+
+            const gameData = GAMES[gameKey];
+            if (!gameData) {
+                alert('Jogo nao encontrado: ' + gameKey);
+                return;
+            }
+
             display.innerHTML = '<p style="color:#00ffcc;text-align:center;padding:20px;">Carregando...</p>';
+
             window.EJS_player = '#display';
-            window.EJS_core = 'snes9x';
-            window.EJS_gameUrl = GAMES[gameKey].url;
+            window.EJS_core = gameData.system || 'snes9x';
+            window.EJS_gameUrl = gameData.url;
             window.EJS_gameName = gameKey;
             window.EJS_startOnLoaded = true;
             window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
             window.EJS_color = '#000000';
+
             const script = document.createElement('script');
             script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
             script.onerror = function() {
