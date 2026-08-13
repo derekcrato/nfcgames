@@ -10,138 +10,89 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
-            width: 100%; height: 100%;
+            width: 100vw; height: 100vh;
             background: #000; color: #fff;
             overflow: hidden; font-family: Arial, sans-serif;
-            touch-action: none;
         }
         #display {
-            position: fixed;
-            top: 0; left: 0;
             width: 100vw; height: 100vh;
-            height: 100dvh;
-            background: #000;
+            position: absolute; top: 0; left: 0;
         }
         #play-btn {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px 40px;
-            font-size: 1.2rem;
-            color: #00ffcc;
-            background: rgba(0, 255, 204, 0.1);
-            border: 2px solid #00ffcc;
-            border-radius: 10px;
-            cursor: pointer;
-            z-index: 10;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            padding: 20px 40px; font-size: 1.2rem; color: #00ffcc;
+            background: rgba(0, 255, 204, 0.1); border: 2px solid #00ffcc;
+            border-radius: 10px; cursor: pointer; z-index: 10;
         }
-        #status {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 50vh;
-            background: rgba(0,0,0,0.9);
-            color: #0f0;
-            padding: 10px;
-            overflow-y: auto;
-            z-index: 20;
-            font-size: 11px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-        #status.hidden { display: none; }
     </style>
 </head>
 <body>
     <div id="play-btn">JOGAR</div>
     <div id="display"></div>
-    <div id="status"></div>
     <script>
         const btn = document.getElementById('play-btn');
         const display = document.getElementById('display');
-        const status = document.getElementById('status');
         const urlParams = new URLSearchParams(window.location.search);
         const gameKey = urlParams.get('rom') || urlParams.get('game') || 'supermarioworld';
 
-        function log(msg) {
-            status.textContent += msg + '\n';
-            status.scrollTop = status.scrollHeight;
-            console.log('[DEBUG] ' + msg);
-        }
-
         const ROMS = {
             "michaeljacksonmd": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FMichael%2520Jackson%27s%2520Moonwalker%2520%28World%29.md",
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Michael%20Jackson%20Moonwalker.md",
                         "system": "genesis_plus_gx",
                         "name": "Michael Jackson's Moonwalker"
             },
             "pokemonblue": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Blue%2520Version.gb",
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Blue%20Version.gb",
                         "system": "gambatte",
                         "name": "Pokemon Blue"
             },
             "pokemonfirered": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520FireRed.gba",
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20FireRed.gba",
                         "system": "mgba",
                         "name": "Pokemon Fire Red"
             },
             "pokemonred": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Red%2520Version.gb",
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Red%20Version.gb",
                         "system": "gambatte",
                         "name": "Pokemon Red"
             },
             "pokemonyellow": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FPokemon%2520-%2520Yellow%2520Version.gbc",
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Yellow%20Version.gbc",
                         "system": "gambatte",
                         "name": "Pokemon Yellow"
             },
             "sapoxule": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSapo%2520Xule%2520vs.%2520Os%2520Invasores%2520do%2520Brejo.bin",
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Sapo%20Xule%20vs.%20Os%20Invasores%20do%20Brejo.bin",
                         "system": "smsplus",
                         "name": "Sapo Xule vs. Os Invasores do Brejo"
             },
             "bomberman5": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Bomberman%25205.sfc",
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc",
                         "system": "snes9x",
                         "name": "Super Bomberman 5"
             },
             "supermariobors3": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Mario%2520Bros.%25203%2520%28USA%29.nes",
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20Bros.%203%20(USA).nes",
                         "system": "fceumm",
                         "name": "Super Mario Bros 3"
             },
             "supermarioworld": {
-                        "url": "https://api.allorigins.win/raw?url=https%3A%2F%2Fraw.githubusercontent.com%2Fderekcrato%2Fnfcgames%2Fmain%2FSuper%2520Mario%2520World%2520%28USA%29.sfc",
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc",
                         "system": "snes9x",
                         "name": "Super Mario World"
             }
 };
 
-        window.addEventListener('error', function(e) {
-            log('ERRO: ' + e.message + ' em ' + e.filename + ':' + e.lineno);
-        });
-
-        window.addEventListener('unhandledrejection', function(e) {
-            log('PROMESSA REJEITADA: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
-        });
-
         btn.addEventListener('click', function() {
             btn.style.display = 'none';
-            status.classList.remove('hidden');
-            log('Iniciando...');
+            display.innerHTML = '<p style="color:#00ffcc;text-align:center;padding:20px;">Carregando...</p>';
 
             const gameData = ROMS[gameKey];
             if (!gameData) {
-                log('ERRO: Jogo nao encontrado: ' + gameKey);
-                display.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Jogo nao encontrado</p>';
+                display.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Jogo nao encontrado: ' + gameKey + '</p>';
                 btn.style.display = 'block';
                 return;
             }
-
-            log('URL: ' + gameData.url);
-            log('Core: ' + gameData.system);
-
-            display.innerHTML = '<p style="color:#00ffcc;text-align:center;padding:20px;">Carregando...</p>';
 
             window.EJS_player = '#display';
             window.EJS_core = gameData.system || 'snes9x';
@@ -153,12 +104,8 @@
 
             const script = document.createElement('script');
             script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
-            script.onload = function() {
-                log('loader.js carregado');
-            };
             script.onerror = function() {
-                log('ERRO: Falha ao carregar loader.js');
-                display.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Erro loader</p>';
+                display.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Erro ao carregar emulador</p>';
                 btn.style.display = 'block';
             };
             document.body.appendChild(script);
