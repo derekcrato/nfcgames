@@ -32,52 +32,53 @@
         const urlParams = new URLSearchParams(window.location.search);
         const gameKey = urlParams.get('rom') || urlParams.get('game') || 'supermarioworld';
 
-        const GAMES = {
-            "supermarioworld": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc",
-                system: "snes9x"
-            },
-            "zelda3": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/The%20Legend%20of%20Zelda%20-%20A%20Link%20to%20the%20Past%20(USA).sfc",
-                system: "snes9x"
-            },
-            "chronotrigger": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Chrono%20Trigger%20(USA).sfc",
-                system: "snes9x"
-            },
-            "bomberman5": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc",
-                system: "snes9x"
-            },
-            "supermariobors3": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20Bros.%203%20(USA).nes",
-                system: "fceumm"
-            },
-            "pokemonred": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Red%20Version.gbc",
-                system: "gambatte"
+        const ROMS = {
+            "michaeljacksonmd": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Michael%20Jackson's%20Moonwalker%20(World).md",
+                        "system": "genesis_plus_gx",
+                        "name": "Michael Jackson's Moonwalker"
             },
             "pokemonblue": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Blue%20Version.gb",
-                system: "gambatte"
-            },
-            "pokemonyellow": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Yellow%20Version.gbc",
-                system: "gambatte"
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Blue%20Version.gb",
+                        "system": "gambatte",
+                        "name": "Pokemon Blue"
             },
             "pokemonfirered": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20FireRed.gba",
-                system: "mgba"
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20FireRed.gba",
+                        "system": "mgba",
+                        "name": "Pokemon Fire Red"
+            },
+            "pokemonred": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Red%20Version.gb",
+                        "system": "gambatte",
+                        "name": "Pokemon Red"
+            },
+            "pokemonyellow": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Pokemon%20-%20Yellow%20Version.gbc",
+                        "system": "gambatte",
+                        "name": "Pokemon Yellow"
             },
             "sapoxule": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Sapo%20Xule%20vs.%20Os%20Invasores%20do%20Brejo.bin",
-                system: "smsplus"
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Sapo%20Xule%20vs.%20Os%20Invasores%20do%20Brejo.bin",
+                        "system": "smsplus",
+                        "name": "Sapo Xule vs. Os Invasores do Brejo"
             },
-            "michaeljacksonmd": {
-                url: "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Michael%20Jackson's%20Moonwalker%20(World).md",
-                system: "genesis_plus_gx"
+            "bomberman5": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Bomberman%205.sfc",
+                        "system": "snes9x",
+                        "name": "Super Bomberman 5"
+            },
+            "supermariobors3": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20Bros.%203%20(USA).nes",
+                        "system": "fceumm",
+                        "name": "Super Mario Bros 3"
+            },
+            "supermarioworld": {
+                        "url": "https://raw.githubusercontent.com/derekcrato/nfcgames/main/Super%20Mario%20World%20(USA).sfc",
+                        "system": "snes9x",
+                        "name": "Super Mario World"
             }
-        };
+};
 
         function enterFullscreen(el) {
             if (el.requestFullscreen) el.requestFullscreen();
@@ -88,7 +89,7 @@
             enterFullscreen(document.documentElement);
             btn.style.display = 'none';
 
-            const gameData = GAMES[gameKey];
+            const gameData = ROMS[gameKey];
             if (!gameData) {
                 alert('Jogo nao encontrado: ' + gameKey);
                 return;
